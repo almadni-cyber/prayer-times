@@ -235,7 +235,7 @@ function render(force = false){
     $('hij').textContent = hd.toLocaleDateString('ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
     $('day').textContent = s.toLocaleDateString('ar-SA',{weekday:'long',timeZone:'UTC'});
     $('greg').textContent = s.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
-    $('nextTxt').textContent = `${next.n} القادم: ${fmtTime(next.ms, cfg.off)}`;
+    $('nextTxt').textContent = `${next.n} : ${fmtTime(next.ms, cfg.off)}`;
     $('locTxt').textContent = cfg.name;
     $('list').innerHTML = today.map(p =>
       `<div class="row${p.ms===next.ms?' on':''}${p.k==='midnight'?' mid':''}"><span>${p.n}</span><span class="t">${fmtTime(p.ms,cfg.off)}</span></div>`
