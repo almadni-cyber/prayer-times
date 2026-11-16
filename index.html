@@ -20,14 +20,8 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
 #custom label{font-size:13px;opacity:.9}
 
 .hero{position:relative;background:linear-gradient(160deg,#1e88e5,#0d3b7a);color:#fff;padding:20px 20px 24px;border-radius:0 0 26px 26px;overflow:hidden;text-align:center}
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.22' stroke-width='1.3'%3E%3Cdefs%3E%3Cpolygon id='p' points='100,6 116,18 111,64 100,72 89,64 84,18'/%3E%3C/defs%3E%3Cuse href='%23p'/%3E%3Cuse href='%23p' transform='rotate(36 100 100)'/%3E%3Cuse href='%23p' transform='rotate(72 100 100)'/%3E%3Cuse href='%23p' transform='rotate(108 100 100)'/%3E%3Cuse href='%23p' transform='rotate(144 100 100)'/%3E%3Cuse href='%23p' transform='rotate(180 100 100)'/%3E%3Cuse href='%23p' transform='rotate(216 100 100)'/%3E%3Cuse href='%23p' transform='rotate(252 100 100)'/%3E%3Cuse href='%23p' transform='rotate(288 100 100)'/%3E%3Cuse href='%23p' transform='rotate(324 100 100)'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 160px 160px;
-  pointer-events: none;
-}.hero>*{position:relative}
+.hero::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.22' stroke-width='1.3'%3E%3Cdefs%3E%3Cpolygon id='p' points='100,6 116,18 111,64 100,72 89,64 84,18'/%3E%3C/defs%3E%3Cuse href='%23p'/%3E%3Cuse href='%23p' transform='rotate(36 100 100)'/%3E%3Cuse href='%23p' transform='rotate(72 100 100)'/%3E%3Cuse href='%23p' transform='rotate(108 100 100)'/%3E%3Cuse href='%23p' transform='rotate(144 100 100)'/%3E%3Cuse href='%23p' transform='rotate(180 100 100)'/%3E%3Cuse href='%23p' transform='rotate(216 100 100)'/%3E%3Cuse href='%23p' transform='rotate(252 100 100)'/%3E%3Cuse href='%23p' transform='rotate(288 100 100)'/%3E%3Cuse href='%23p' transform='rotate(324 100 100)'/%3E%3C/g%3E%3C/svg%3E");background-size:160px 160px;pointer-events:none}
+.hero>*{position:relative}
 .dates{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:bold;gap:8px}
 .next{font-size:26px;margin:22px 0 8px;font-weight:bold}
 .cd{font-size:19px;opacity:.95}
@@ -77,9 +71,8 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
 <script>
 const $ = id => document.getElementById(id);
 const CITIES = [
-  {n:'مكة المكرمة',    lat:21.4225, lng:39.8262, tz:'Asia/Riyadh'},
   {n:'المدينة المنورة', lat:24.4672, lng:39.6024, tz:'Asia/Riyadh'},
-  {n:'القدس',          lat:31.7683, lng:35.2137, tz:'Asia/Jerusalem'},
+  {n:'مكة المكرمة',    lat:21.4225, lng:39.8262, tz:'Asia/Riyadh'},
   {n:'الرياض',         lat:24.7136, lng:46.6753, tz:'Asia/Riyadh'},
   {n:'صنعاء',          lat:15.3694, lng:44.1910, tz:'Asia/Aden'},
   {n:'القاهرة',        lat:30.0444, lng:31.2357, tz:'Africa/Cairo'},
@@ -89,6 +82,7 @@ const CITIES = [
   {n:'المنامة',        lat:26.2285, lng:50.5860, tz:'Asia/Bahrain'},
   {n:'مسقط',           lat:23.5880, lng:58.3829, tz:'Asia/Muscat'},
   {n:'عمّان',          lat:31.9454, lng:35.9284, tz:'Asia/Amman'},
+  {n:'القدس',          lat:31.7683, lng:35.2137, tz:'Asia/Jerusalem'},
   {n:'بغداد',          lat:33.3152, lng:44.3661, tz:'Asia/Baghdad'},
   {n:'دمشق',           lat:33.5138, lng:36.2765, tz:'Asia/Damascus'},
   {n:'بيروت',          lat:33.8938, lng:35.5018, tz:'Asia/Beirut'},
@@ -107,6 +101,7 @@ const CITIES = [
   {n:'واشنطن',         lat:38.9072, lng:-77.0369, tz:'America/New_York'}
 ];
 const PRAYERS = [['fajr','الفجر'],['sunrise','الشروق'],['dhuhr','الظهر'],['asr','العصر'],['maghrib','المغرب'],['isha','العشاء'],['midnight','منتصف الليل']];
+const rad = Math.PI/180, deg = 180/Math.PI;
 
 // فرق التوقيت لمنطقة IANA بالساعات
 function tzOff(tz){
@@ -141,7 +136,6 @@ function eventsForDay(Y,M,D,cfg){
 }
 
 // ----- احتياط: حساب مبسّط في حال عدم توفر المكتبة -----
-const rad = Math.PI/180, deg = 180/Math.PI;
 function solar(Y,M,D,lat,lng,off){
   const jd = Date.UTC(Y,M,D,12)/86400000 + 2440587.5;
   const n = jd - 2451545.0;
@@ -177,7 +171,7 @@ const fmtTime = (ms,off) => new Date(ms + off*3600000).toLocaleTimeString('ar-SA
 const fmtN = n => n.toLocaleString('ar-SA');
 const fmtLeft = ms => {
   const d = Math.max(0, ms - Date.now());
-  return `${fmtN(Math.floor(d/3600000))} ساعة و ${fmtN(Math.floor(d%3600000/60000))} دقيقة`;
+  return `${fmtN(Math.floor(d/3600000))} ساعة و ${fmtN(Math.floor(d%3600000/60000))} دقيقة و ${fmtN(Math.floor(d%60000/1000))} ثانية`;
 };
 
 function nearestCity(lat,lng){
@@ -190,6 +184,7 @@ function nearestCity(lat,lng){
 }
 
 let customName = 'موقع مخصص';
+let lastKey = '';
 
 function getCfg(){
   const v = $('city').value;
@@ -198,7 +193,9 @@ function getCfg(){
   return {name:c.n, lat:c.lat, lng:c.lng, off:tzOff(c.tz)};
 }
 
-function render(){
+// force: إعادة بناء كاملة (عند تغيير الإعدادات)
+// بدون force: يُعاد البناء فقط إذا تغيّر اليوم أو الصلاة القادمة أو الإعدادات، والعداد يُحدَّث كل ثانية
+function render(force = false){
   const cfg = getCfg();
   const now = Date.now();
   const s = new Date(now + cfg.off*3600000);
@@ -206,23 +203,25 @@ function render(){
 
   const today = eventsForDay(Y,M,D,cfg);
   const tomorrow = eventsForDay(Y,M,D+1,cfg);
-  const all = [...today, ...tomorrow];
-  const next = all.find(p => p.ms > now);
+  const next = [...today, ...tomorrow].find(p => p.ms > now);
 
-  // التاريخ الهجري واسم اليوم والميلادي
-  const adj = +$('adj').value;
-  const hd = new Date(now + cfg.off*3600000 + adj*86400000);
-  $('hij').textContent = hd.toLocaleDateString('ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
-  $('day').textContent = s.toLocaleDateString('ar-SA',{weekday:'long',timeZone:'UTC'});
-  $('greg').textContent = s.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+  const key = [Y,M,D,cfg.lat,cfg.lng,cfg.off,$('adj').value,next.ms,cfg.name].join('|');
 
-  $('nextTxt').textContent = `${next.n} القادم: ${fmtTime(next.ms, cfg.off)}`;
+  if (force || key !== lastKey){
+    lastKey = key;
+    const adj = +$('adj').value;
+    const hd = new Date(now + cfg.off*3600000 + adj*86400000);
+    $('hij').textContent = hd.toLocaleDateString('ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+    $('day').textContent = s.toLocaleDateString('ar-SA',{weekday:'long',timeZone:'UTC'});
+    $('greg').textContent = s.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+    $('nextTxt').textContent = `${next.n} القادم: ${fmtTime(next.ms, cfg.off)}`;
+    $('locTxt').textContent = cfg.name;
+    $('list').innerHTML = today.map(p =>
+      `<div class="row${p.ms===next.ms?' on':''}${p.k==='midnight'?' mid':''}"><span>${p.n}</span><span class="t">${fmtTime(p.ms,cfg.off)}</span></div>`
+    ).join('');
+  }
+
   $('cd').textContent = `المتبقي ${fmtLeft(next.ms)}`;
-  $('locTxt').textContent = cfg.name;
-
-  $('list').innerHTML = today.map(p =>
-    `<div class="row${p.ms===next.ms?' on':''}${p.k==='midnight'?' mid':''}"><span>${p.n}</span><span class="t">${fmtTime(p.ms,cfg.off)}</span></div>`
-  ).join('');
 }
 
 // تحديد الموقع تلقائيًا: الإحداثيات أولًا، وإلا حسب توقيت الجهاز
@@ -269,13 +268,13 @@ function init(){
     sel.value = saved.city;
     $('lat').value = saved.lat; $('lng').value = saved.lng; $('off').value = saved.off;
     $('adj').value = saved.adj ?? 0;
-    toggleCustom(); render();
+    toggleCustom(); render(true);
   } else {
     $('adj').value = '0';
     $('off').value = deviceOff();
     fallbackByTZ();
-    toggleCustom(); render();
-    detectLocation(ok => { toggleCustom(); persist(); render(); });
+    toggleCustom(); render(true);
+    detectLocation(ok => { toggleCustom(); persist(); render(true); });
   }
 
   sel.addEventListener('change', () => {
@@ -283,16 +282,16 @@ function init(){
       const c = CITIES[+sel.value];
       $('lat').value = c.lat; $('lng').value = c.lng; $('off').value = tzOff(c.tz).toFixed(2);
     }
-    toggleCustom(); persist(); render();
+    toggleCustom(); persist(); render(true);
   });
-  ['lat','lng','off','adj'].forEach(id => $(id).addEventListener('change', () => { persist(); render(); }));
+  ['lat','lng','off','adj'].forEach(id => $(id).addEventListener('change', () => { persist(); render(true); }));
   $('geo').addEventListener('click', () => {
     detectLocation(ok => {
       if (!ok) alert('تعذّر تحديد الموقع، تم اختيار المدينة حسب توقيت جهازك');
-      toggleCustom(); persist(); render();
+      toggleCustom(); persist(); render(true);
     });
   });
-  setInterval(render, 1000);
+  setInterval(() => render(false), 1000);
 }
 init();
 </script>
