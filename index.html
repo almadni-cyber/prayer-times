@@ -21,10 +21,9 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
 .hero{position:relative;background:linear-gradient(160deg,#1e88e5,#0d3b7a);color:#fff;padding:20px 20px 24px;border-radius:0 0 26px 26px;overflow:hidden;text-align:center}
 .hero::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 2L38 22L58 30L38 38L30 58L22 38L2 30L22 22Z' fill='none' stroke='%23ffffff' stroke-opacity='.22' stroke-width='1.2'/%3E%3Ccircle cx='30' cy='30' r='6' fill='none' stroke='%23ffffff' stroke-opacity='.22'/%3E%3C/svg%3E");background-size:60px 60px;pointer-events:none}
 .hero>*{position:relative}
-.dates{display:flex;justify-content:space-between;font-size:17px;font-weight:bold}
+.dates{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:bold;gap:8px}
 .next{font-size:26px;margin:22px 0 8px;font-weight:bold}
 .cd{font-size:19px;opacity:.95}
-.sub{margin-top:12px;font-size:15px;opacity:.9;display:flex;justify-content:space-around;gap:8px;flex-wrap:wrap}
 .loc{margin-top:14px;font-size:14px;opacity:.85}
 
 .list{padding:16px;display:grid;gap:12px}
@@ -56,6 +55,7 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
   <div class="hero">
     <div class="dates">
       <span id="hij"></span>
+      <span id="day"></span>
       <span id="greg"></span>
     </div>
     <div class="next" id="nextTxt"></div>
@@ -73,19 +73,31 @@ const CITIES = [
   {n:'المدينة المنورة', lat:24.4672, lng:39.6024, tz:'Asia/Riyadh'},
   {n:'مكة المكرمة',    lat:21.4225, lng:39.8262, tz:'Asia/Riyadh'},
   {n:'الرياض',         lat:24.7136, lng:46.6753, tz:'Asia/Riyadh'},
-  {n:'جدة',            lat:21.5433, lng:39.1728, tz:'Asia/Riyadh'},
-  {n:'الدمام',         lat:26.4207, lng:50.0888, tz:'Asia/Riyadh'},
   {n:'صنعاء',          lat:15.3694, lng:44.1910, tz:'Asia/Aden'},
-  {n:'عدن',            lat:12.7855, lng:45.0187, tz:'Asia/Aden'},
-  {n:'تعز',            lat:13.5795, lng:44.0209, tz:'Asia/Aden'},
-  {n:'الحديدة',        lat:14.7978, lng:42.9545, tz:'Asia/Aden'},
-  {n:'إب',             lat:13.9667, lng:44.1833, tz:'Asia/Aden'},
-  {n:'ذمار',           lat:14.5428, lng:44.4017, tz:'Asia/Aden'},
-  {n:'المكلا',         lat:14.5425, lng:49.1242, tz:'Asia/Aden'},
-  {n:'مأرب',           lat:15.4594, lng:45.3263, tz:'Asia/Aden'},
-  {n:'صعدة',           lat:16.9402, lng:43.7610, tz:'Asia/Aden'},
   {n:'القاهرة',        lat:30.0444, lng:31.2357, tz:'Africa/Cairo'},
-  {n:'دبي',            lat:25.2048, lng:55.2708, tz:'Asia/Dubai'}
+  {n:'أبو ظبي',        lat:24.4539, lng:54.3773, tz:'Asia/Dubai'},
+  {n:'الكويت',         lat:29.3759, lng:47.9774, tz:'Asia/Kuwait'},
+  {n:'الدوحة',         lat:25.2854, lng:51.5310, tz:'Asia/Qatar'},
+  {n:'المنامة',        lat:26.2285, lng:50.5860, tz:'Asia/Bahrain'},
+  {n:'مسقط',           lat:23.5880, lng:58.3829, tz:'Asia/Muscat'},
+  {n:'عمّان',          lat:31.9454, lng:35.9284, tz:'Asia/Amman'},
+  {n:'القدس',          lat:31.7683, lng:35.2137, tz:'Asia/Jerusalem'},
+  {n:'بغداد',          lat:33.3152, lng:44.3661, tz:'Asia/Baghdad'},
+  {n:'دمشق',           lat:33.5138, lng:36.2765, tz:'Asia/Damascus'},
+  {n:'بيروت',          lat:33.8938, lng:35.5018, tz:'Asia/Beirut'},
+  {n:'الرباط',         lat:34.0209, lng:-6.8416, tz:'Africa/Casablanca'},
+  {n:'الجزائر',        lat:36.7538, lng:3.0588,  tz:'Africa/Algiers'},
+  {n:'تونس',           lat:36.8065, lng:10.1815, tz:'Africa/Tunis'},
+  {n:'طرابلس',         lat:32.8872, lng:13.1913, tz:'Africa/Tripoli'},
+  {n:'الخرطوم',        lat:15.5007, lng:32.5599, tz:'Africa/Khartoum'},
+  {n:'أنقرة',          lat:39.9334, lng:32.8597, tz:'Europe/Istanbul'},
+  {n:'طهران',          lat:35.6892, lng:51.3890, tz:'Asia/Tehran'},
+  {n:'إسلام آباد',     lat:33.6844, lng:73.0479, tz:'Asia/Karachi'},
+  {n:'جاكرتا',         lat:-6.2088, lng:106.8456, tz:'Asia/Jakarta'},
+  {n:'كوالالمبور',     lat:3.1390,  lng:101.6869, tz:'Asia/Kuala_Lumpur'},
+  {n:'لندن',           lat:51.5074, lng:-0.1278, tz:'Europe/London'},
+  {n:'باريس',          lat:48.8566, lng:2.3522,  tz:'Europe/Paris'},
+  {n:'واشنطن',         lat:38.9072, lng:-77.0369, tz:'America/New_York'}
 ];
 const PRAYERS = [['fajr','الفجر'],['sunrise','الشروق'],['dhuhr','الظهر'],['asr','العصر'],['maghrib','المغرب'],['isha','العشاء'],['midnight','منتصف الليل']];
 const rad = Math.PI/180, deg = 180/Math.PI;
@@ -177,10 +189,11 @@ function render(){
 
   const next = all.find(p => p.ms > now);
 
-  // التاريخ الهجري والميلادي
+  // التاريخ الهجري واسم اليوم والميلادي
   const adj = +$('adj').value;
   const hd = new Date(now + cfg.off*3600000 + adj*86400000);
   $('hij').textContent = hd.toLocaleDateString('ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+  $('day').textContent = s.toLocaleDateString('ar-SA',{weekday:'long',timeZone:'UTC'});
   $('greg').textContent = s.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
 
   $('nextTxt').textContent = `${next.n} القادم: ${fmtTime(next.ms, cfg.off)}`;
