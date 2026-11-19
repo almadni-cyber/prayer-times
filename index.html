@@ -418,11 +418,17 @@ function startCompass(){
 
 // تحديد الموقع تلقائيًا: الإحداثيات أولًا، وإلا حسب توقيت الجهاز
 function applyDevice(lat,lng){
+  const near = nearestCity(lat,lng);
+  // داخل نطاق المدينة نختارها من القائمة ونخفي الموقع المخصص
+  if (near.km <= NEAR_KM){
+    $('city').value = String(CITIES.findIndex(c => c.n === near.n));
+    $('custom').style.display = 'none';
+    return;
+  }
   $('city').value = 'custom';
   $('lat').value = lat.toFixed(4);
   $('lng').value = lng.toFixed(4);
   $('off').value = deviceOff();
-  const near = nearestCity(lat,lng);
   customName = near.km <= NEAR_KM ? near.n : 'موقعي الحالي (قرب ' + near.n + ')';
   $('custom').style.display = 'flex';
 }
