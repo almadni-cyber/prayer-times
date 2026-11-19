@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>أوقات الصلاة</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<meta name="theme-color" content="#0d3b7a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script src="https://unpkg.com/adhan/lib/bundles/adhan.umd.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;color:#1b2b3c}
+.wrap{max-width:480px;margin:0 auto;padding-bottom:24px}
+
+.bar{background:#0d3b7a;color:#fff;padding:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bar select,.bar input,.bar button{font:inherit;padding:8px;border-radius:8px;border:0}
+.bar select{flex:1;min-width:150px}
+.bar button{background:#90caf9;color:#0d3b7a;font-weight:bold;cursor:pointer}
+.bar .adj{background:#1e4f96;color:#fff}
+#custom{display:none;gap:6px;flex-wrap:wrap;width:100%}
+#custom input{width:95px;color:#000}
+#custom label{font-size:13px;opacity:.9}
+
+.hero{position:relative;background:linear-gradient(160deg,#1e88e5,#0d3b7a);color:#fff;padding:20px 20px 24px;border-radius:0 0 26px 26px;overflow:hidden;text-align:center}
+.hero::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.22' stroke-width='1.3'%3E%3Cdefs%3E%3Cpolygon id='p' points='100,6 116,18 111,64 100,72 89,64 84,18'/%3E%3C/defs%3E%3Cuse href='%23p'/%3E%3Cuse href='%23p' transform='rotate(36 100 100)'/%3E%3Cuse href='%23p' transform='rotate(72 100 100)'/%3E%3Cuse href='%23p' transform='rotate(108 100 100)'/%3E%3Cuse href='%23p' transform='rotate(144 100 100)'/%3E%3Cuse href='%23p' transform='rotate(180 100 100)'/%3E%3Cuse href='%23p' transform='rotate(216 100 100)'/%3E%3Cuse href='%23p' transform='rotate(252 100 100)'/%3E%3Cuse href='%23p' transform='rotate(288 100 100)'/%3E%3Cuse href='%23p' transform='rotate(324 100 100)'/%3E%3C/g%3E%3C/svg%3E");background-size:160px 160px;pointer-events:none}
+.hero>*{position:relative}
+.dates{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:bold;gap:8px}
+.next{font-size:26px;margin:22px 0 8px;font-weight:bold}
+.cd{font-size:19px;opacity:.95}
+.loc{margin-top:14px;font-size:14px;opacity:.85}
+
+.list{padding:16px;display:grid;gap:12px}
+.row{background:#f5f8fc;border:2px solid transparent;border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;font-size:20px;box-shadow:0 2px 0 #cfd8e3}
+.row.on{border-color:#1565c0;background:#e3f0ff}
+.row.mid{background:#dfe7f2;font-size:18px}
+.row .t{direction:ltr;font-variant-numeric:tabular-nums}
+.note{font-size:12px;color:#5a6b7d;text-align:center;padding:4px 16px}
+.bar .ic{background:#1e4f96;color:#fff;padding:6px 8px;display:inline-flex;align-items:center}
+.bar .ic svg{width:24px;height:24px}
+.cmodal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
+.cmodal.open{display:flex}
+.cbox{background:#fff;border-radius:20px;padding:20px;text-align:center;max-width:340px;width:100%}
+#qiblaTxt{font-size:18px;font-weight:bold;color:#0d3b7a;margin-bottom:6px}
+#headTxt{font-size:14px;color:#5a6b7d}
+#compassMsg{font-size:13px;color:#c62828;min-height:18px;margin-top:6px}
+.cbox svg{width:100%;max-width:280px;height:auto}
+.cbox .close{background:#90caf9;color:#0d3b7a;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bar">
+    <select id="city"></select>
+    <button id="geo" type="button">موقعي الحالي</button>
+    <button id="compassBtn" class="ic" type="button" title="بوصلة القبلة">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16,8 13.5,13.5 8,16 10.5,10.5" fill="#ff7043" stroke="none"/></svg>
+    </button>
+    <select id="adj" class="adj" title="تعديل التاريخ الهجري">
+      <option value="0">الهجري: حسب التقويم</option>
+      <option value="-1">الهجري: ناقص يوم</option>
+      <option value="1">الهجري: زائد يوم</option>
+    </select>
+    <div id="custom">
+      <label>خط العرض<input id="lat" type="number" step="0.0001"></label>
+      <label>خط الطول<input id="lng" type="number" step="0.0001"></label>
+      <label>فرق التوقيت (ساعات)<input id="off" type="number" step="0.5"></label>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="dates">
+      <span id="hij"></span>
+      <span id="day"></span>
+      <span id="greg"></span>
+    </div>
+    <div class="next" id="nextTxt"></div>
+    <div class="cd" id="cd"></div>
+    <div class="loc" id="locTxt"></div>
+  </div>
+
+  <div class="cmodal" id="cmodal">
+    <div class="cbox">
+      <div id="qiblaTxt"></div>
+      <svg viewBox="0 0 300 300">
+        <polygon points="150,4 141,26 159,26" fill="#e53935"/>
+        <g id="dialRot">
+          <circle cx="150" cy="150" r="130" fill="#f5f8fc" stroke="#cfd8e3" stroke-width="6"/>
+          <g id="ticks"></g>
+          <g id="qMarker" transform="rotate(0 150 150)">
+            <polygon points="150,80 136,110 150,102 164,110" fill="#1565c0"/>
+          </g>
+        </g>
+        <circle cx="150" cy="150" r="6" fill="#0d3b7a"/>
+      </svg>
+      <div id="headTxt"></div>
+      <div id="compassMsg"></div>
+      <button class="close" id="cClose" type="button">إغلاق</button>
+    </div>
+  </div>
+
+  <div class="list" id="list"></div>
+  <div class="note">الحساب بمكتبة adhan: طريقة أم القرى (الفجر 18.5°، والعشاء بعد المغرب بساعة ونصف)، والعصر على المذهب الشافعي، ومنتصف الليل = منتصف المدة بين المغرب والفجر التالي.</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const CITIES = [
+  {n:'المدينة المنورة', lat:24.4672, lng:39.6024, tz:'Asia/Riyadh'},
+  {n:'مكة المكرمة',    lat:21.4225, lng:39.8262, tz:'Asia/Riyadh'},
+  {n:'الرياض',         lat:24.7136, lng:46.6753, tz:'Asia/Riyadh'},
+  {n:'صنعاء',          lat:15.3694, lng:44.1910, tz:'Asia/Aden'},
+  {n:'القاهرة',        lat:30.0444, lng:31.2357, tz:'Africa/Cairo'},
+  {n:'أبو ظبي',        lat:24.4539, lng:54.3773, tz:'Asia/Dubai'},
+  {n:'الكويت',         lat:29.3759, lng:47.9774, tz:'Asia/Kuwait'},
+  {n:'الدوحة',         lat:25.2854, lng:51.5310, tz:'Asia/Qatar'},
+  {n:'المنامة',        lat:26.2285, lng:50.5860, tz:'Asia/Bahrain'},
+  {n:'مسقط',           lat:23.5880, lng:58.3829, tz:'Asia/Muscat'},
+  {n:'عمّان',          lat:31.9454, lng:35.9284, tz:'Asia/Amman'},
+  {n:'القدس',          lat:31.7683, lng:35.2137, tz:'Asia/Jerusalem'},
+  {n:'بغداد',          lat:33.3152, lng:44.3661, tz:'Asia/Baghdad'},
+  {n:'دمشق',           lat:33.5138, lng:36.2765, tz:'Asia/Damascus'},
+  {n:'بيروت',          lat:33.8938, lng:35.5018, tz:'Asia/Beirut'},
+  {n:'الرباط',         lat:34.0209, lng:-6.8416, tz:'Africa/Casablanca'},
+  {n:'الجزائر',        lat:36.7538, lng:3.0588,  tz:'Africa/Algiers'},
+  {n:'تونس',           lat:36.8065, lng:10.1815, tz:'Africa/Tunis'},
+  {n:'طرابلس',         lat:32.8872, lng:13.1913, tz:'Africa/Tripoli'},
+  {n:'الخرطوم',        lat:15.5007, lng:32.5599, tz:'Africa/Khartoum'},
+  {n:'أنقرة',          lat:39.9334, lng:32.8597, tz:'Europe/Istanbul'},
+  {n:'طهران',          lat:35.6892, lng:51.3890, tz:'Asia/Tehran'},
+  {n:'إسلام آباد',     lat:33.6844, lng:73.0479, tz:'Asia/Karachi'},
+  {n:'جاكرتا',         lat:-6.2088, lng:106.8456, tz:'Asia/Jakarta'},
+  {n:'كوالالمبور',     lat:3.1390,  lng:101.6869, tz:'Asia/Kuala_Lumpur'},
+  {n:'لندن',           lat:51.5074, lng:-0.1278, tz:'Europe/London'},
+  {n:'باريس',          lat:48.8566, lng:2.3522,  tz:'Europe/Paris'},
+  {n:'واشنطن',         lat:38.9072, lng:-77.0369, tz:'America/New_York'}
+];
+const PRAYERS = [['fajr','الفجر'],['sunrise','الشروق'],['dhuhr','الظهر'],['asr','العصر'],['maghrib','المغرب'],['isha','العشاء'],['midnight','منتصف الليل']];
+const rad = Math.PI/180, deg = 180/Math.PI;
+
+// فرق التوقيت لمنطقة IANA بالساعات
+function tzOff(tz){
+  const dt = new Date();
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'}).formatToParts(dt).map(x=>[x.type,x.value]));
+  const asUTC = Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute,+p.second);
+  return (asUTC - (dt.getTime() - dt.getUTCMilliseconds())) / 3600000;
+}
+const deviceOff = () => -new Date().getTimezoneOffset()/60;
+const deviceTZ = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+// أوقات يوم واحد بالزمن المطلق (ms) عبر مكتبة adhan
+function eventsForDay(Y,M,D,cfg){
+  if (window.adhan) {
+    const coords = new adhan.Coordinates(cfg.lat, cfg.lng);
+    const params = adhan.CalculationMethod.UmmAlQura();
+    const pt  = new adhan.PrayerTimes(coords, new Date(Y,M,D,12), params);
+    const ptN = new adhan.PrayerTimes(coords, new Date(Y,M,D+1,12), params);
+    const ms = {
+      fajr: pt.fajr.getTime(),
+      sunrise: pt.sunrise.getTime(),
+      dhuhr: pt.dhuhr.getTime(),
+      asr: pt.asr.getTime(),
+      maghrib: pt.maghrib.getTime(),
+      isha: pt.isha.getTime(),
+      midnight: (pt.maghrib.getTime() + ptN.fajr.getTime()) / 2
+    };
+    return PRAYERS.map(([k,n]) => ({k, n, ms: ms[k]}));
+  }
+  return null;
+}
+
+
+const fmtTime = (ms,off) => new Date(ms + off*3600000).toLocaleTimeString('ar-SA',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'UTC'});
+const fmtN = n => n.toLocaleString('ar-SA');
+const fmtLeft = ms => {
+  const d = Math.max(0, ms - Date.now());
+  return `${fmtN(Math.floor(d/3600000))} ساعة و ${fmtN(Math.floor(d%3600000/60000))} دقيقة و ${fmtN(Math.floor(d%60000/1000))} ثانية`;
+};
+
+function nearestCity(lat,lng){
+  let best = null, bd = Infinity;
+  CITIES.forEach(c => {
+    const d = (c.lat-lat)**2 + (c.lng-lng)**2;
+    if (d < bd){ bd = d; best = c; }
+  });
+  return best.n;
+}
+
+let customName = 'موقع مخصص';
+let lastKey = '';
+
+function getCfg(){
+  const v = $('city').value;
+  if (v === 'custom') return {name:customName, lat:+$('lat').value, lng:+$('lng').value, off:+$('off').value};
+  const c = CITIES[+v];
+  return {name:c.n, lat:c.lat, lng:c.lng, off:tzOff(c.tz)};
+}
+
+// force: إعادة بناء كاملة (عند تغيير الإعدادات)
+// بدون force: يُعاد البناء فقط إذا تغيّر اليوم أو الصلاة القادمة أو الإعدادات، والعداد يُحدَّث كل ثانية
+function render(force = false){
+  const cfg = getCfg();
+  const now = Date.now();
+  const s = new Date(now + cfg.off*3600000);
+  const Y = s.getUTCFullYear(), M = s.getUTCMonth(), D = s.getUTCDate();
+
+  // بدون المكتبة لا تُعرض أوقات تقديرية
+  if (!window.adhan){
+    $('nextTxt').textContent = 'يلزم اتصال بالإنترنت مرة واحدة لتحميل حساب الأوقات';
+    $('cd').textContent = '';
+    $('list').innerHTML = '';
+    return;
+  }
+  const today = eventsForDay(Y,M,D,cfg);
+  const tomorrow = eventsForDay(Y,M,D+1,cfg);
+  const next = [...today, ...tomorrow].find(p => p.ms > now);
+
+  const key = [Y,M,D,cfg.lat,cfg.lng,cfg.off,$('adj').value,next.ms,cfg.name].join('|');
+
+  if (force || key !== lastKey){
+    lastKey = key;
+    const adj = +$('adj').value;
+    const hd = new Date(now + cfg.off*3600000 + adj*86400000);
+    $('hij').textContent = hd.toLocaleDateString('ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+    $('day').textContent = s.toLocaleDateString('ar-SA',{weekday:'long',timeZone:'UTC'});
+    $('greg').textContent = s.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+    $('nextTxt').textContent = `${next.n} القادم: ${fmtTime(next.ms, cfg.off)}`;
+    $('locTxt').textContent = cfg.name;
+    $('list').innerHTML = today.map(p =>
+      `<div class="row${p.ms===next.ms?' on':''}${p.k==='midnight'?' mid':''}"><span>${p.n}</span><span class="t">${fmtTime(p.ms,cfg.off)}</span></div>`
+    ).join('');
+  }
+
+  $('cd').textContent = `المتبقي ${fmtLeft(next.ms)}`;
+  updateQibla();
+}
+
+// ----- بوصلة القبلة -----
+// رسم التدريج: خط صغير كل 5 درجات، وخط أطول مع رقم كل 30 درجة، والاتجاهات الأصلية بحروفها
+function buildDial(){
+  let s = '';
+  for (let a = 0; a < 360; a += 5){
+    const r = a*rad, sin = Math.sin(r), cos = Math.cos(r);
+    const major = a % 30 === 0;
+    const r1 = 124, r2 = major ? 106 : 116;
+    s += `<line x1="${(150+r1*sin).toFixed(2)}" y1="${(150-r1*cos).toFixed(2)}" x2="${(150+r2*sin).toFixed(2)}" y2="${(150-r2*cos).toFixed(2)}" stroke="#1b2b3c" stroke-width="${major?2.5:1}"/>`;
+    if (major){
+      const label = {0:'N',90:'E',180:'S',270:'W'}[a];
+      const fill = label === 'N' ? '#e53935' : (label ? '#1b2b3c' : '#1565c0');
+      s += `<text x="${(150+90*sin).toFixed(2)}" y="${(150-90*cos+6).toFixed(2)}" text-anchor="middle" font-size="${label?20:14}" font-weight="bold" fill="${fill}">${label || a}</text>`;
+    }
+  }
+  $('ticks').innerHTML = s;
+}
+const KAABA = {lat:21.4225, lng:39.8262};
+let compassOn = false;
+
+// زاوية القبلة من الشمال باتجاه عقارب الساعة (عقلي: من نقطة الموقع إلى الكعبة)
+function qiblaBearing(lat,lng){
+  const p1 = lat*rad, p2 = KAABA.lat*rad, dl = (KAABA.lng - lng)*rad;
+  const y = Math.sin(dl)*Math.cos(p2);
+  const x = Math.cos(p1)*Math.sin(p2) - Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
+  return (Math.atan2(y,x)*deg + 360) % 360;
+}
+
+function updateQibla(){
+  const c = getCfg();
+  const q = qiblaBearing(c.lat, c.lng);
+  $('qiblaTxt').textContent = `دراجة القبلة لـ${c.name}: ${fmtN(Math.round(q))}°`;
+  $('qMarker').setAttribute('transform', `rotate(${q.toFixed(1)} 150 150)`);
+}
+
+function onOrientation(e){
+  let h = null;
+  if (typeof e.webkitCompassHeading === 'number' && e.webkitCompassHeading >= 0) h = e.webkitCompassHeading;
+  else if (typeof e.alpha === 'number') h = (360 - e.alpha) % 360;
+  if (h === null) return;
+  // تدوير المؤشرات بحيث يبقى الشمال متوافقًا مع اتجاه الجهاز
+  $('dialRot').setAttribute('transform', `rotate(${(-h).toFixed(1)} 150 150)`);
+  $('headTxt').textContent = `اتجاه الجهاز: ${fmtN(Math.round(h))}°`;
+}
+
+function startCompass(){
+  if (compassOn) return;
+  const DOE = window.DeviceOrientationEvent;
+  if (!DOE){ $('compassMsg').textContent = 'هذا الجهاز لا يدعم المستشعر'; return; }
+  const attach = () => {
+    compassOn = true;
+    $('compassMsg').textContent = '';
+    if ('ondeviceorientationabsolute' in window)
+      window.addEventListener('deviceorientationabsolute', onOrientation, true);
+    else
+      window.addEventListener('deviceorientation', onOrientation, true);
+  };
+  if (typeof DOE.requestPermission === 'function'){
+    DOE.requestPermission()
+      .then(r => r === 'granted' ? attach() : ($('compassMsg').textContent = 'لم تُمنح صلاحية المستشعر'))
+      .catch(() => $('compassMsg').textContent = 'تعذّر تفعيل البوصلة');
+  } else attach();
+}
+
+// تحديد الموقع تلقائيًا: الإحداثيات أولًا، وإلا حسب توقيت الجهاز
+function applyDevice(lat,lng){
+  $('city').value = 'custom';
+  $('lat').value = lat.toFixed(4);
+  $('lng').value = lng.toFixed(4);
+  $('off').value = deviceOff();
+  customName = 'موقعي الحالي (قرب ' + nearestCity(lat,lng) + ')';
+  $('custom').style.display = 'flex';
+}
+
+function fallbackByTZ(){
+  const tz = deviceTZ();
+  const idx = CITIES.findIndex(c => c.tz === tz);
+  if (idx >= 0) $('city').value = String(idx);
+}
+
+function detectLocation(onDone){
+  if (!navigator.geolocation){ fallbackByTZ(); return onDone && onDone(false); }
+  navigator.geolocation.getCurrentPosition(p => {
+    applyDevice(p.coords.latitude, p.coords.longitude);
+    onDone && onDone(true);
+  }, () => {
+    fallbackByTZ();
+    onDone && onDone(false);
+  }, {enableHighAccuracy:false, timeout:8000, maximumAge:600000});
+}
+
+function init(){
+  const sel = $('city');
+  sel.innerHTML = CITIES.map((c,i) => `<option value="${i}">${c.n}</option>`).join('') +
+                  `<option value="custom">موقع مخصص (يدوي)</option>`;
+  const toggleCustom = () => { $('custom').style.display = sel.value === 'custom' ? 'flex' : 'none'; };
+  const persist = () => {
+    try { localStorage.setItem('pt_cfg', JSON.stringify({city:sel.value, lat:$('lat').value, lng:$('lng').value, off:$('off').value, adj:$('adj').value, name:customName})); } catch(e){}
+  };
+
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem('pt_cfg')||'null'); } catch(e){}
+
+  if (saved){
+    customName = saved.name || customName;
+    sel.value = saved.city;
+    $('lat').value = saved.lat; $('lng').value = saved.lng; $('off').value = saved.off;
+    $('adj').value = saved.adj ?? 0;
+    toggleCustom(); render(true);
+  } else {
+    $('adj').value = '0';
+    $('off').value = deviceOff();
+    fallbackByTZ();
+    toggleCustom(); render(true);
+    detectLocation(ok => { toggleCustom(); persist(); render(true); });
+  }
+
+  sel.addEventListener('change', () => {
+    if (sel.value !== 'custom') {
+      const c = CITIES[+sel.value];
+      $('lat').value = c.lat; $('lng').value = c.lng; $('off').value = tzOff(c.tz).toFixed(2);
+    }
+    toggleCustom(); persist(); render(true);
+  });
+  ['lat','lng','off','adj'].forEach(id => $(id).addEventListener('change', () => { persist(); render(true); }));
+  $('geo').addEventListener('click', () => {
+    detectLocation(ok => {
+      if (!ok) alert('تعذّر تحديد الموقع، تم اختيار المدينة حسب توقيت جهازك');
+      toggleCustom(); persist(); render(true);
+    });
+  });
+  buildDial();
+  $('compassBtn').addEventListener('click', () => {
+    $('cmodal').classList.add('open');
+    updateQibla();
+    startCompass();
+  });
+  $('cClose').addEventListener('click', () => $('cmodal').classList.remove('open'));
+  setInterval(() => render(false), 1000);
+}
+init();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>

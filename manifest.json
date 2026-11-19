@@ -1,0 +1,19 @@
+{
+  "name": "أوقات الصلاة",
+  "short_name": "الصلاة",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d3b7a",
+  "theme_color": "#0d3b7a",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
