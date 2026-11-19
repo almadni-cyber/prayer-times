@@ -61,6 +61,21 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
 .mbox tr.today td{background:#e3f0ff;font-weight:bold}
 .mmsg{text-align:center;color:#c62828;padding:20px}
 .mbox .close{background:#90caf9;color:#0d3b7a;margin-top:12px;border:0;border-radius:10px;padding:9px 14px;font-weight:bold;cursor:pointer}
+@media (prefers-color-scheme: dark){
+  body{background:#0f1720;color:#e6edf5}
+  .bar{background:#081a33}
+  .row{background:#1a2430;box-shadow:0 2px 0 #0a0f15}
+  .row.on{border-color:#42a5f5;background:#15324f}
+  .row.mid{background:#202b38}
+  .note{color:#9fb0c3}
+  #custom input{color:#000}
+  .mmodal,.cbox{background:#0f1720;color:#e6edf5}
+  .mhead span,#qiblaTxt{color:#90caf9}
+  #headTxt{color:#9fb0c3}
+  .mbox th,.mbox td{border-color:#2b3a4a}
+  .mbox th{background:#081a33}
+  .mbox tr.today td{background:#15324f}
+}
 </style>
 </head>
 <body>
@@ -429,7 +444,7 @@ function applyDevice(lat,lng){
   $('lat').value = lat.toFixed(4);
   $('lng').value = lng.toFixed(4);
   $('off').value = deviceOff();
-  customName = near.km <= NEAR_KM ? near.n : 'موقعي الحالي (قرب ' + near.n + ')';
+  customName = 'موقعي الحالي (قرب ' + near.n + ')';
   $('custom').style.display = 'flex';
 }
 
@@ -441,12 +456,14 @@ function fallbackByTZ(){
 }
 
 function detectLocation(onDone){
-  if (!navigator.geolocation){ fallbackByTZ(); return onDone && onDone(false); }
+  // لا نستبدل الموقع المحفوظ بالمدينة الافتراضية إن تعذّر تحديد الموقع
+  const hasSaved = !!localStorage.getItem('pt_cfg');
+  if (!navigator.geolocation){ if (!hasSaved) fallbackByTZ(); return onDone && onDone(false); }
   navigator.geolocation.getCurrentPosition(p => {
     applyDevice(p.coords.latitude, p.coords.longitude);
     onDone && onDone(true);
   }, () => {
-    fallbackByTZ();
+    if (!hasSaved) fallbackByTZ();
     onDone && onDone(false);
   }, {enableHighAccuracy:false, timeout:8000, maximumAge:600000});
 }
@@ -481,7 +498,7 @@ function init(){
   }
 
   sel.addEventListener('change', () => {
-    manualPick = sel.value !== 'custom' || manualPick;
+    manualPick = true;
     if (sel.value !== 'custom') {
       const c = CITIES[+sel.value];
       $('lat').value = c.lat; $('lng').value = c.lng; $('off').value = tzOff(c.tz).toFixed(2);
