@@ -47,6 +47,20 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
 #compassMsg{font-size:13px;color:#c62828;min-height:18px;margin-top:6px}
 .cbox svg{width:100%;max-width:280px;height:auto}
 .cbox .close{background:#90caf9;color:#0d3b7a;margin-top:10px}
+.bar .ic.mon svg{width:24px;height:24px}
+.mmodal{position:fixed;inset:0;background:#fff;display:none;z-index:40;overflow:auto}
+.mmodal.open{display:block}
+.mbox{padding:12px;max-width:900px;margin:0 auto}
+.mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mhead span{font-size:20px;font-weight:bold;color:#0d3b7a}
+.nav{background:#0d3b7a;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;padding:0;cursor:pointer;border:0}
+.tw{overflow-x:auto}
+.mbox table{border-collapse:collapse;width:100%;min-width:720px;font-size:13px;text-align:center}
+.mbox th,.mbox td{border:1px solid #cfd8e3;padding:6px 4px;white-space:nowrap}
+.mbox th{background:#0d3b7a;color:#fff}
+.mbox tr.today td{background:#e3f0ff;font-weight:bold}
+.mmsg{text-align:center;color:#c62828;padding:20px}
+.mbox .close{background:#90caf9;color:#0d3b7a;margin-top:12px;border:0;border-radius:10px;padding:9px 14px;font-weight:bold;cursor:pointer}
 </style>
 </head>
 <body>
@@ -57,6 +71,9 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
     <button id="geo" type="button">موقعي الحالي</button>
     <button id="compassBtn" class="ic" type="button" title="بوصلة القبلة">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16,8 13.5,13.5 8,16 10.5,10.5" fill="#ff7043" stroke="none"/></svg>
+    </button>
+    <button id="monthBtn" class="ic mon" type="button" title="أوقات الشهر">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="#fff"/><circle cx="4" cy="12" r="1.5" fill="#fff"/><circle cx="4" cy="18" r="1.5" fill="#fff"/></svg>
     </button>
     <select id="adj" class="adj" title="تعديل التاريخ الهجري">
       <option value="0">الهجري: حسب التقويم</option>
@@ -101,6 +118,18 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
     </div>
   </div>
 
+  <div class="mmodal" id="mmodal">
+    <div class="mbox">
+      <div class="mhead">
+        <button class="nav" id="mPrev" type="button">›</button>
+        <span id="mTitle2"></span>
+        <button class="nav" id="mNext" type="button">‹</button>
+      </div>
+      <div id="mBody"></div>
+      <button class="close" id="mClose" type="button">إغلاق</button>
+    </div>
+  </div>
+
   <div class="list" id="list"></div>
   <div class="note">الحساب بمكتبة adhan: طريقة أم القرى (الفجر 18.5°، والعشاء بعد المغرب بساعة ونصف)، والعصر على المذهب الشافعي، ومنتصف الليل = منتصف المدة بين المغرب والفجر التالي.</div>
 </div>
@@ -108,9 +137,22 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
 <script>
 const $ = id => document.getElementById(id);
 const CITIES = [
-  {n:'المدينة المنورة', lat:24.4672, lng:39.6024, tz:'Asia/Riyadh'},
   {n:'مكة المكرمة',    lat:21.4225, lng:39.8262, tz:'Asia/Riyadh'},
+  {n:'المدينة المنورة', lat:24.4672, lng:39.6024, tz:'Asia/Riyadh'},
+  {n:'القدس',          lat:31.7683, lng:35.2137, tz:'Asia/Jerusalem'},
   {n:'الرياض',         lat:24.7136, lng:46.6753, tz:'Asia/Riyadh'},
+  {n:'القصيم (بريدة)', lat:26.3260, lng:43.9750, tz:'Asia/Riyadh'},
+  {n:'الشرقية (الدمام)', lat:26.4207, lng:50.0888, tz:'Asia/Riyadh'},
+  {n:'جدة', lat:21.5433, lng:39.1728, tz:'Asia/Riyadh'},
+  {n:'الطائف', lat:21.2703, lng:40.4158, tz:'Asia/Riyadh'},
+  {n:'عسير (أبها)', lat:18.2164, lng:42.5053, tz:'Asia/Riyadh'},
+  {n:'تبوك', lat:28.3838, lng:36.5550, tz:'Asia/Riyadh'},
+  {n:'حائل', lat:27.5114, lng:41.7208, tz:'Asia/Riyadh'},
+  {n:'عرعر', lat:30.9753, lng:41.0381, tz:'Asia/Riyadh'},
+  {n:'جازان', lat:16.8892, lng:42.5611, tz:'Asia/Riyadh'},
+  {n:'نجران', lat:17.4924, lng:44.1277, tz:'Asia/Riyadh'},
+  {n:'الباحة', lat:20.0129, lng:41.4677, tz:'Asia/Riyadh'},
+  {n:'الجوف (سكاكا)', lat:29.9697, lng:40.2064, tz:'Asia/Riyadh'},
   {n:'صنعاء',          lat:15.3694, lng:44.1910, tz:'Asia/Aden'},
   {n:'القاهرة',        lat:30.0444, lng:31.2357, tz:'Africa/Cairo'},
   {n:'أبو ظبي',        lat:24.4539, lng:54.3773, tz:'Asia/Dubai'},
@@ -119,7 +161,6 @@ const CITIES = [
   {n:'المنامة',        lat:26.2285, lng:50.5860, tz:'Asia/Bahrain'},
   {n:'مسقط',           lat:23.5880, lng:58.3829, tz:'Asia/Muscat'},
   {n:'عمّان',          lat:31.9454, lng:35.9284, tz:'Asia/Amman'},
-  {n:'القدس',          lat:31.7683, lng:35.2137, tz:'Asia/Jerusalem'},
   {n:'بغداد',          lat:33.3152, lng:44.3661, tz:'Asia/Baghdad'},
   {n:'دمشق',           lat:33.5138, lng:36.2765, tz:'Asia/Damascus'},
   {n:'بيروت',          lat:33.8938, lng:35.5018, tz:'Asia/Beirut'},
@@ -172,23 +213,36 @@ function eventsForDay(Y,M,D,cfg){
 }
 
 
-const fmtTime = (ms,off) => new Date(ms + off*3600000).toLocaleTimeString('ar-SA',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'UTC'});
+const fmtTime = (ms,off,short=false) => {
+  const s = new Date(ms + off*3600000).toLocaleTimeString('ar-SA',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'UTC'});
+  return short ? s.replace(/[\s\u200e\u200f\u061c]*[صم][\s\u200e\u200f\u061c]*$/u, '') : s;
+};
 const fmtN = n => n.toLocaleString('ar-SA');
 const fmtLeft = ms => {
   const d = Math.max(0, ms - Date.now());
   return `${fmtN(Math.floor(d/3600000))} ساعة و ${fmtN(Math.floor(d%3600000/60000))} دقيقة و ${fmtN(Math.floor(d%60000/1000))} ثانية`;
 };
 
+// إن كان الموقع ضمن هذا البعد (بالكيلومتر) من مركز المدينة يُعرض اسم المدينة مباشرة
+const NEAR_KM = 20;
+
+function distKm(lat1,lng1,lat2,lng2){
+  const dLat = (lat2-lat1)*rad, dLng = (lng2-lng1)*rad;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLng/2)**2;
+  return 2*6371*Math.asin(Math.sqrt(a));
+}
+
 function nearestCity(lat,lng){
   let best = null, bd = Infinity;
   CITIES.forEach(c => {
-    const d = (c.lat-lat)**2 + (c.lng-lng)**2;
+    const d = distKm(lat,lng,c.lat,c.lng);
     if (d < bd){ bd = d; best = c; }
   });
-  return best.n;
+  return {n: best.n, km: bd};
 }
 
 let customName = 'موقع مخصص';
+let manualPick = false; // true إذا اختار المستخدم مدينة يدويًا
 let lastKey = '';
 
 function getCfg(){
@@ -226,7 +280,7 @@ function render(force = false){
     $('hij').textContent = hd.toLocaleDateString('ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
     $('day').textContent = s.toLocaleDateString('ar-SA',{weekday:'long',timeZone:'UTC'});
     $('greg').textContent = s.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
-    $('nextTxt').textContent = `${next.n} القادم: ${fmtTime(next.ms, cfg.off)}`;
+    $('nextTxt').textContent = `${next.n}: ${fmtTime(next.ms, cfg.off)}`;
     $('locTxt').textContent = cfg.name;
     $('list').innerHTML = today.map(p =>
       `<div class="row${p.ms===next.ms?' on':''}${p.k==='midnight'?' mid':''}"><span>${p.n}</span><span class="t">${fmtTime(p.ms,cfg.off)}</span></div>`
@@ -235,6 +289,67 @@ function render(force = false){
 
   $('cd').textContent = `المتبقي ${fmtLeft(next.ms)}`;
   updateQibla();
+}
+
+// ----- جدول الشهر الهجري -----
+const DAY = 86400000;
+let monthStart = 0;
+
+// الشهر الهجري (سنة وشهر ويوم) لتاريخ معين، مع تطبيق تعديل الهجري
+function hijriParts(ms){
+  const adj = +$('adj').value;
+  const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {timeZone:'UTC', day:'numeric', month:'numeric', year:'numeric'}).formatToParts(new Date(ms + adj*DAY));
+  const o = {};
+  parts.forEach(p => { o[p.type] = Number(p.value); });
+  return {y:o.year, m:o.month, d:o.day};
+}
+const sameMonth = (a,b) => a.y === b.y && a.m === b.m;
+
+// أول يوم في الشهر الهجري الحالي
+function firstOfCurrentHijriMonth(){
+  const cfg = getCfg();
+  const s = new Date(Date.now() + cfg.off*3600000);
+  const today = Date.UTC(s.getUTCFullYear(), s.getUTCMonth(), s.getUTCDate());
+  return today - (hijriParts(today).d - 1)*DAY;
+}
+
+function nextMonthStart(ms){
+  const cur = hijriParts(ms);
+  let t = ms;
+  do { t += DAY; } while (sameMonth(hijriParts(t), cur));
+  return t;
+}
+
+function prevMonthStart(ms){
+  let t = ms - DAY;
+  const prev = hijriParts(t);
+  while (sameMonth(hijriParts(t - DAY), prev)) t -= DAY;
+  return t;
+}
+
+function buildMonth(){
+  const cfg = getCfg();
+  const adj = +$('adj').value;
+  const cur = hijriParts(monthStart);
+  $('mTitle2').textContent = new Date(monthStart + adj*DAY).toLocaleDateString('ar-SA-u-ca-islamic-umalqura', {month:'long', year:'numeric', timeZone:'UTC'});
+
+  if (!window.adhan){
+    $('mBody').innerHTML = '<p class="mmsg">يلزم اتصال بالإنترنت مرة واحدة لتحميل حساب الأوقات</p>';
+    return;
+  }
+
+  const s = new Date(Date.now() + cfg.off*3600000);
+  const todayMs = Date.UTC(s.getUTCFullYear(), s.getUTCMonth(), s.getUTCDate());
+  const head = '<tr><th>اليوم</th><th>التاريخ</th><th>الفجر</th><th>الشروق</th><th>الظهر</th><th>العصر</th><th>المغرب</th><th>العشاء</th><th>منتصف الليل</th></tr>';
+  let rows = '';
+  for (let t = monthStart; sameMonth(hijriParts(t), cur); t += DAY){
+    const g = new Date(t);
+    const ev = eventsForDay(g.getUTCFullYear(), g.getUTCMonth(), g.getUTCDate(), cfg);
+    const tm = k => fmtTime(ev.find(p => p.k === k).ms, cfg.off, true);
+    const wd = new Date(t + adj*DAY).toLocaleDateString('ar-SA', {weekday:'long', timeZone:'UTC'});
+    rows += `<tr class="${t === todayMs ? 'today' : ''}"><td>${wd}</td><td>${fmtN(hijriParts(t).d)}</td><td>${tm('fajr')}</td><td>${tm('sunrise')}</td><td>${tm('dhuhr')}</td><td>${tm('asr')}</td><td>${tm('maghrib')}</td><td>${tm('isha')}</td><td>${tm('midnight')}</td></tr>`;
+  }
+  $('mBody').innerHTML = `<div class="tw"><table><thead>${head}</thead><tbody>${rows}</tbody></table></div>`;
 }
 
 // ----- بوصلة القبلة -----
@@ -307,13 +422,15 @@ function applyDevice(lat,lng){
   $('lat').value = lat.toFixed(4);
   $('lng').value = lng.toFixed(4);
   $('off').value = deviceOff();
-  customName = 'موقعي الحالي (قرب ' + nearestCity(lat,lng) + ')';
+  const near = nearestCity(lat,lng);
+  customName = near.km <= NEAR_KM ? near.n : 'موقعي الحالي (قرب ' + near.n + ')';
   $('custom').style.display = 'flex';
 }
 
 function fallbackByTZ(){
   const tz = deviceTZ();
-  const idx = CITIES.findIndex(c => c.tz === tz);
+  // عند تعذّر تحديد الموقع نختار مدينة غير مكة والمدينة
+  const idx = CITIES.findIndex(c => c.tz === tz && c.n !== 'مكة المكرمة' && c.n !== 'المدينة المنورة');
   if (idx >= 0) $('city').value = String(idx);
 }
 
@@ -334,7 +451,7 @@ function init(){
                   `<option value="custom">موقع مخصص (يدوي)</option>`;
   const toggleCustom = () => { $('custom').style.display = sel.value === 'custom' ? 'flex' : 'none'; };
   const persist = () => {
-    try { localStorage.setItem('pt_cfg', JSON.stringify({city:sel.value, lat:$('lat').value, lng:$('lng').value, off:$('off').value, adj:$('adj').value, name:customName})); } catch(e){}
+    try { localStorage.setItem('pt_cfg', JSON.stringify({city:sel.value, lat:$('lat').value, lng:$('lng').value, off:$('off').value, adj:$('adj').value, name:customName, manual:manualPick})); } catch(e){}
   };
 
   let saved = null;
@@ -342,6 +459,7 @@ function init(){
 
   if (saved){
     customName = saved.name || customName;
+    manualPick = !!saved.manual;
     sel.value = saved.city;
     $('lat').value = saved.lat; $('lng').value = saved.lng; $('off').value = saved.off;
     $('adj').value = saved.adj ?? 0;
@@ -349,12 +467,15 @@ function init(){
   } else {
     $('adj').value = '0';
     $('off').value = deviceOff();
-    fallbackByTZ();
-    toggleCustom(); render(true);
+    $('nextTxt').textContent = 'جارٍ تحديد موقعك...';
+  }
+  // الموقع الحالي هو الافتراضي، ما لم يختر المستخدم مدينة يدويًا
+  if (!manualPick){
     detectLocation(ok => { toggleCustom(); persist(); render(true); });
   }
 
   sel.addEventListener('change', () => {
+    manualPick = sel.value !== 'custom' || manualPick;
     if (sel.value !== 'custom') {
       const c = CITIES[+sel.value];
       $('lat').value = c.lat; $('lng').value = c.lng; $('off').value = tzOff(c.tz).toFixed(2);
@@ -363,12 +484,17 @@ function init(){
   });
   ['lat','lng','off','adj'].forEach(id => $(id).addEventListener('change', () => { persist(); render(true); }));
   $('geo').addEventListener('click', () => {
+    manualPick = false;
     detectLocation(ok => {
       if (!ok) alert('تعذّر تحديد الموقع، تم اختيار المدينة حسب توقيت جهازك');
       toggleCustom(); persist(); render(true);
     });
   });
   buildDial();
+  $('monthBtn').addEventListener('click', () => { monthStart = firstOfCurrentHijriMonth(); buildMonth(); $('mmodal').classList.add('open'); });
+  $('mPrev').addEventListener('click', () => { monthStart = prevMonthStart(monthStart); buildMonth(); });
+  $('mNext').addEventListener('click', () => { monthStart = nextMonthStart(monthStart); buildMonth(); });
+  $('mClose').addEventListener('click', () => $('mmodal').classList.remove('open'));
   $('compassBtn').addEventListener('click', () => {
     $('cmodal').classList.add('open');
     updateQibla();
