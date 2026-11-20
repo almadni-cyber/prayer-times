@@ -46,7 +46,7 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
 #headTxt{font-size:14px;color:#5a6b7d}
 #compassMsg{font-size:13px;color:#c62828;min-height:18px;margin-top:6px}
 .cbox svg{width:100%;max-width:280px;height:auto}
-.cbox .close{background:#90caf9;color:#0d3b7a;margin-top:10px}
+.cbox .close{background:#90caf9;color:#0d3b7a;margin-top:12px;border:0;border-radius:12px;padding:14px 32px;font-size:20px;font-weight:bold;cursor:pointer;width:100%}
 .bar .ic.mon svg{width:24px;height:24px}
 .mmodal{position:fixed;inset:0;background:#fff;display:none;z-index:40;overflow:auto}
 .mmodal.open{display:block}
@@ -156,19 +156,19 @@ const CITIES = [
   {n:'المدينة المنورة', lat:24.4672, lng:39.6024, tz:'Asia/Riyadh'},
   {n:'القدس',          lat:31.7683, lng:35.2137, tz:'Asia/Jerusalem'},
   {n:'الرياض',         lat:24.7136, lng:46.6753, tz:'Asia/Riyadh'},
-  {n:'القصيم (بريدة)', lat:26.3260, lng:43.9750, tz:'Asia/Riyadh'},
+  {n:'القصيم (بريدة)',  lat:26.3260, lng:43.9750, tz:'Asia/Riyadh'},
   {n:'الشرقية (الدمام)', lat:26.4207, lng:50.0888, tz:'Asia/Riyadh'},
-  {n:'جدة', lat:21.5433, lng:39.1728, tz:'Asia/Riyadh'},
-  {n:'الطائف', lat:21.2703, lng:40.4158, tz:'Asia/Riyadh'},
-  {n:'عسير (أبها)', lat:18.2164, lng:42.5053, tz:'Asia/Riyadh'},
-  {n:'تبوك', lat:28.3838, lng:36.5550, tz:'Asia/Riyadh'},
-  {n:'حائل', lat:27.5114, lng:41.7208, tz:'Asia/Riyadh'},
-  {n:'عرعر', lat:30.9753, lng:41.0381, tz:'Asia/Riyadh'},
-  {n:'جازان', lat:16.8892, lng:42.5611, tz:'Asia/Riyadh'},
-  {n:'نجران', lat:17.4924, lng:44.1277, tz:'Asia/Riyadh'},
-  {n:'الباحة', lat:20.0129, lng:41.4677, tz:'Asia/Riyadh'},
-  {n:'الجوف (سكاكا)', lat:29.9697, lng:40.2064, tz:'Asia/Riyadh'},
-  {n:'صنعاء',          lat:15.3694, lng:44.1910, tz:'Asia/Aden'},
+  {n:'جدة',            lat:21.4858, lng:39.1925, tz:'Asia/Riyadh'},
+  {n:'الطائف',         lat:21.2703, lng:40.4158, tz:'Asia/Riyadh'},
+  {n:'عسير (أبها)',    lat:18.2164, lng:42.5053, tz:'Asia/Riyadh'},
+  {n:'تبوك',           lat:28.3838, lng:36.5550, tz:'Asia/Riyadh'},
+  {n:'حائل',           lat:27.5114, lng:41.7208, tz:'Asia/Riyadh'},
+  {n:'عرعر',           lat:30.9753, lng:41.0381, tz:'Asia/Riyadh'},
+  {n:'جازان',          lat:16.8892, lng:42.5511, tz:'Asia/Riyadh'},
+  {n:'نجران',          lat:17.4924, lng:44.1277, tz:'Asia/Riyadh'},
+  {n:'الباحة',         lat:20.0129, lng:41.4677, tz:'Asia/Riyadh'},
+  {n:'الجوف (سكاكا)',  lat:29.9697, lng:40.2064, tz:'Asia/Riyadh'},
+{n:'صنعاء',          lat:15.3694, lng:44.1910, tz:'Asia/Aden'},
   {n:'القاهرة',        lat:30.0444, lng:31.2357, tz:'Africa/Cairo'},
   {n:'أبو ظبي',        lat:24.4539, lng:54.3773, tz:'Asia/Dubai'},
   {n:'الكويت',         lat:29.3759, lng:47.9774, tz:'Asia/Kuwait'},
@@ -192,6 +192,7 @@ const CITIES = [
   {n:'لندن',           lat:51.5074, lng:-0.1278, tz:'Europe/London'},
   {n:'باريس',          lat:48.8566, lng:2.3522,  tz:'Europe/Paris'},
   {n:'واشنطن',         lat:38.9072, lng:-77.0369, tz:'America/New_York'}
+
 ];
 const PRAYERS = [['fajr','الفجر'],['sunrise','الشروق'],['dhuhr','الظهر'],['asr','العصر'],['maghrib','المغرب'],['isha','العشاء'],['midnight','منتصف الليل']];
 const rad = Math.PI/180, deg = 180/Math.PI;
@@ -282,8 +283,11 @@ function render(force = false){
     $('list').innerHTML = '';
     return;
   }
-  const today = eventsForDay(Y,M,D,cfg);
-  const tomorrow = eventsForDay(Y,M,D+1,cfg);
+  // يوم الجمعة يظهر وقت الظهر باسم "الجمعة"
+  const wdToday = s.getUTCDay();
+  const dhuhrName = wd => wd === 5 ? 'الجمعة' : 'الظهر';
+  const today = eventsForDay(Y,M,D,cfg).map(p => p.k === 'dhuhr' ? {...p, n: dhuhrName(wdToday)} : p);
+  const tomorrow = eventsForDay(Y,M,D+1,cfg).map(p => p.k === 'dhuhr' ? {...p, n: dhuhrName((wdToday+1)%7)} : p);
   const next = [...today, ...tomorrow].find(p => p.ms > now);
 
   const key = [Y,M,D,cfg.lat,cfg.lng,cfg.off,$('adj').value,next.ms,cfg.name].join('|');
@@ -451,7 +455,7 @@ function applyDevice(lat,lng){
 function fallbackByTZ(){
   const tz = deviceTZ();
   // عند تعذّر تحديد الموقع نختار مدينة غير مكة والمدينة
-  const idx = CITIES.findIndex(c => c.tz === tz && c.n !== 'مكة المكرمة' && c.n !== 'المدينة المنورة');
+  const idx = tz === 'Asia/Riyadh' ? CITIES.findIndex(c => c.n === 'الرياض') : CITIES.findIndex(c => c.tz === tz && c.n !== 'مكة المكرمة' && c.n !== 'المدينة المنورة');
   if (idx >= 0) $('city').value = String(idx);
 }
 
