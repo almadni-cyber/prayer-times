@@ -1,5 +1,5 @@
 // غيّر رقم الإصدار عند كل تعديل ليتحدّث الكاش على الأجهزة
-const CACHE = 'prayer-v6';
+const CACHE = 'prayer-v7';
 const ASSETS = [
   './',
   './index.html',
