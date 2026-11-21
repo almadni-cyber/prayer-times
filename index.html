@@ -30,7 +30,8 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
 .dates{display:flex;justify-content:space-between;align-items:center;font-size:20px;font-weight:bold;gap:8px}
 .next{font-size:26px;margin:22px 0 8px;font-weight:bold}
 .cd{font-size:19px;opacity:.95}
-.loc{margin-top:14px;font-size:22px;opacity:.85}
+.loc{margin-top:14px;font-size:20px;opacity:.85}
+.night{margin-top:12px;font-size:20px;font-weight:bold;color:#ffc857}
 
 .list{padding:16px;display:grid;gap:12px}
 .row{background:#f5f8fc;border:2px solid transparent;border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;font-size:20px;box-shadow:0 2px 0 #cfd8e3}
@@ -44,7 +45,7 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
 .cmodal.open{display:flex}
 .cbox{background:#fff;border-radius:20px;padding:20px;text-align:center;max-width:340px;width:100%}
 #qiblaTxt{font-size:18px;font-weight:bold;color:#0d3b7a;margin-bottom:6px}
-#headTxt{font-size:20px;color:#5a6b7d}
+#headTxt{font-size:14px;color:#5a6b7d}
 #compassMsg{font-size:13px;color:#c62828;min-height:18px;margin-top:6px}
 .cbox svg{width:100%;max-width:280px;height:auto}
 .cbox .close{background:#90caf9;color:#0d3b7a;margin-top:12px;border:0;border-radius:12px;padding:14px 32px;font-size:20px;font-weight:bold;cursor:pointer;width:100%}
@@ -109,6 +110,7 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
       <span id="day"></span>
       <span id="greg"></span>
     </div>
+    <div class="night" id="night" hidden></div>
     <div class="next" id="nextTxt"></div>
     <div class="cd" id="cd"></div>
     <div class="loc" id="locTxt"></div>
@@ -147,7 +149,7 @@ body{margin:0;background:#e9eef5;font-family:"Segoe UI",Tahoma,Arial,sans-serif;
   </div>
 
   <div class="list" id="list"></div>
-  <div class="note">الحساب بمكتبة adhan: طريقة أم القرى (الفجر 18.5°، والعشاء بعد المغرب بساعة ونصف)، والعصر على مذهب الجمهور، ومنتصف الليل = منتصف المدة بين المغرب والفجر التالي.</div>
+  <div class="note">الحساب بمكتبة adhan: طريقة أم القرى (الفجر 18.5°، والعشاء بعد المغرب بساعة ونصف)، والعصر على مذهب الجمهور ،اليوم الشرعي يبدأ بغروب الشمس،ومنتصف الليل = منتصف المدة بين المغرب والفجر التالي.</div>
 </div>
 
 <script>
@@ -302,6 +304,18 @@ function render(force = false){
     $('greg').textContent = s.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
     $('nextTxt').textContent = `${next.n}: ${fmtTime(next.ms, cfg.off)}`;
     $('locTxt').textContent = cfg.name;
+    // "ليلة" اليوم التالي تظهر من دخول المغرب حتى منتصف الليل
+    const nightEl = $('night');
+    if (now >= today.find(p => p.k === 'maghrib').ms){
+      const tm = Date.UTC(Y, M, D+1);
+      const wdName = new Date(tm).toLocaleDateString('ar-SA', {weekday:'long', timeZone:'UTC'});
+      const hd2 = hijriParts(tm).d;
+      const hm2 = new Date(tm + adj*DAY).toLocaleDateString('ar-SA-u-ca-islamic-umalqura', {month:'long', timeZone:'UTC'});
+      nightEl.textContent = `ليلة ${wdName} ${fmtN(hd2)} ${hm2}`;
+      nightEl.hidden = false;
+    } else {
+      nightEl.hidden = true;
+    }
     $('list').innerHTML = today.map(p =>
       `<div class="row${p.ms===next.ms?' on':''}${p.k==='midnight'?' mid':''}"><span>${p.n}</span><span class="t">${fmtTime(p.ms,cfg.off)}</span></div>`
     ).join('');
